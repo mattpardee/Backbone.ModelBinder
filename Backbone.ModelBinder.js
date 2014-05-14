@@ -183,7 +183,7 @@
         },
 
         _bindModelToView: function () {
-            this._model.on('change', this._onModelChange, this);
+            this._model.on('sync', this._onModelChange, this);
 
             if(this._options['initialCopyDirection'] === Backbone.ModelBinder.Constants.ModelToView){
                 this.copyModelAttributesToView();
