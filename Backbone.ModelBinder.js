@@ -272,9 +272,9 @@
         },
 
         _isBindingUserEditable: function(elBinding){
-            return elBinding.elAttribute === undefined ||
-                elBinding.elAttribute === 'text' ||
-                elBinding.elAttribute === 'html';
+            return typeof elBinding.elAttributes === undefined ||
+                (elBinding.elAttributes.indexOf('text') !== -1) ||
+                (elBinding.elAttributes.indexOf('html') !== -1);
         },
 
         _isElUserEditable: function(el){
@@ -363,7 +363,7 @@
         },
 
         _setEl: function (el, elementBinding, convertedValue) {
-            if (elementBinding.elAttribute) {
+            if (elementBinding.elAttributes) {
                 this._setElAttribute(el, elementBinding, convertedValue);
             }
             else {
@@ -372,41 +372,44 @@
         },
 
         _setElAttribute:function (el, elementBinding, convertedValue) {
-            switch (elementBinding.elAttribute) {
-                case 'html':
-                    el.html(convertedValue);
-                    break;
-                case 'text':
-                    el.text(convertedValue);
-                    break;
-                case 'enabled':
-                    el.prop('disabled', !convertedValue);
-                    break;
-                case 'displayed':
-                    el[convertedValue ? 'show' : 'hide']();
-                    break;
-                case 'hidden':
-                    el[convertedValue ? 'hide' : 'show']();
-                    break;
-                case 'css':
-                    el.css(elementBinding.cssAttribute, convertedValue);
-                    break;
-                case 'class':
-                    var previousValue = this._model.previous(elementBinding.attributeBinding.attributeName);
-                    var currentValue = this._model.get(elementBinding.attributeBinding.attributeName);
-                    // is current value is now defined then remove the class the may have been set for the undefined value
-                    if(!_.isUndefined(previousValue) || !_.isUndefined(currentValue)){
-                        previousValue = this._getConvertedValue(Backbone.ModelBinder.Constants.ModelToView, elementBinding, previousValue);
-                        el.removeClass(previousValue);
-                    }
+            _.each(elementBinding.elAttributes, function(attribute) {
+                switch (attribute) {
+                    case 'html':
+                        el.html(convertedValue);
+                        break;
+                    case 'text':
+                        el.text(convertedValue);
+                        break;
+                    case 'enabled':
+                        el.prop('disabled', !convertedValue);
+                        break;
+                    case 'displayed':
+                        el[convertedValue ? 'show' : 'hide']();
+                        break;
+                    case 'hidden':
+                        el[convertedValue ? 'hide' : 'show']();
+                        break;
+                    case 'css':
+                        el.css(elementBinding.cssAttribute, convertedValue);
+                        break;
+                    case 'class':
+                        var previousValue = this._model.previous(elementBinding.attributeBinding.attributeName);
+                        var currentValue = this._model.get(elementBinding.attributeBinding.attributeName);
+                        // is current value is now defined then remove the class the may have been set for the undefined value
+                        if(!_.isUndefined(previousValue) || !_.isUndefined(currentValue)){
+                            previousValue = this._getConvertedValue(Backbone.ModelBinder.Constants.ModelToView, elementBinding, previousValue);
+                            el.removeClass(previousValue);
+                        }
 
-                    if(convertedValue){
-                        el.addClass(convertedValue);
-                    }
-                    break;
-                default:
-                    el.attr(elementBinding.elAttribute, convertedValue);
-            }
+                        if(convertedValue){
+                            el.addClass(convertedValue);
+                        }
+                        break;
+                    default:
+                        el.attr(attribute, convertedValue);
+                        break;
+                }
+            });
         },
 
         _setElValue:function (el, convertedValue) {
@@ -519,8 +522,8 @@
     // rootEl - where to find all of the bound elements
     // attributeType - probably 'name' or 'id' in most cases
     // converter(optional) - the default converter you want applied to all your bindings
-    // elAttribute(optional) - the default elAttribute you want applied to all your bindings
-    Backbone.ModelBinder.createDefaultBindings = function(rootEl, attributeType, converter, elAttribute){
+    // elAttributes(optional) - array of default attributes you want applied to all your bindings
+    Backbone.ModelBinder.createDefaultBindings = function(rootEl, attributeType, converter, elAttributes){
         var foundEls, elCount, foundEl, attributeName;
         var bindings = {};
 
@@ -538,8 +541,8 @@
                     bindings[attributeName].converter = converter;
                 }
 
-                if(elAttribute){
-                    bindings[attributeName].elAttribute = elAttribute;
+                if(elAttributes){
+                    bindings[attributeName].elAttributes = elAttributes;
                 }
             }
         }
@@ -556,9 +559,9 @@
                 elementBinding.converter = value.converter;
             }
 
-            if(value.elAttribute){
+            /*if(value.elAttribute){
                 elementBinding.elAttribute = value.elAttribute;
-            }
+            }*/
 
             if(!destination[key]){
                 destination[key] = elementBinding;
