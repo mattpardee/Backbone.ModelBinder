@@ -234,7 +234,7 @@
 
         _unbindModelToView: function(){
             if(this._model){
-                this._model.off('change', this._onModelChange);
+                this._model.off('sync', this._onModelChange);
                 this._model = undefined;
             }
         },
@@ -334,7 +334,7 @@
         _onModelChange:function () {
             var changedAttribute, attributeBinding;
 
-            for (changedAttribute in this._model.changedAttributes()) {
+            for (changedAttribute in this._model.attributes) {
                 attributeBinding = this._attributeBindings[changedAttribute];
 
                 if (attributeBinding) {
